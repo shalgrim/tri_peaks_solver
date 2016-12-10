@@ -30,7 +30,7 @@ class Card(object):
         :param other: a Card
         :return: None
         """
-        self.covers.add(other)
+        self.covering.add(other)
         other.covered_by.add(self)
 
     def can_play(self, other):
@@ -44,3 +44,9 @@ class Card(object):
             return True
 
         return False
+
+    def __str__(self):
+        return self.rank.name + self.suit.name
+
+    def __repr__(self):
+        return str(self) # TODO: improve

@@ -1,8 +1,9 @@
-from Card import Card
-from Card import Suit
-from Card import Rank
-from Deck import Deck
+import sys
+from deck import Deck
 from copy import deepcopy
+
+failed_sequences = set()
+lowest_remaining = 28
 
 class Game(object):
     """
@@ -20,6 +21,7 @@ class Game(object):
         self.discard = None
         self.deck = Deck()
         self._setup(gameno)
+        self.prev_moves = []
 
     def _setup(self, gameno=None):
         if gameno is None:
@@ -30,7 +32,7 @@ class Game(object):
                     self.deck['JD'], self.deck['4C'],
                         self.deck['2S'], self.deck['10D'], self.deck['6D'],
                         self.deck['10C'], self.deck['6C'], self.deck['3H'],
-                        self.deck['AS'], self.deck['QS'], self.deck['JS'],
+                        self.deck['AS'], self.deck['QS'], self.deck['JC'],
                 self.deck['KD'], self.deck['QH'], self.deck['5H'],self.deck['AD'], self.deck['9C'],
                 self.deck['KC'], self.deck['4H'], self.deck['7C'], self.deck['2C'], self.deck['JH'],
             ]
@@ -97,43 +99,57 @@ class Game(object):
                 moves.append(card)
 
         if self.stock:
-            if self.stock[0].can_play(self.discard):
-                moves.append(self.stock[0])
+            moves.append(self.stock[0])
 
         return moves
 
-    def play(self, card):
+    def play(self, card_string):
+        card = self.deck[card_string]
         if card in self.tableau:
             for covered in card.covering:
-                del covered.covered_by[card]
+                covered.covered_by.remove(card)
 
             self.discard = card
+            self.tableau.remove(card)
 
         else: # must be in stock
+            assert card in self.stock, '{} not in stock'.format(card)
             self.discard = card
-            del self.stock[0]
+            self.stock.remove(card)
+
+        self.prev_moves.append(card)
+
+        return
 
 
-    def solve(self, prev_moves = None):
+    def solve(self):
+        global lowest_remaining
 
-        if len(self.tableau) == 0:
-            return prev_moves
-
-        if not prev_moves:
-            prev_moves = []
+        if len(self.tableau) == 0: # solved
+            print('Successful moves: {}'.format(self.prev_moves))
+            return self.prev_moves
 
         moves = self.get_moves()
 
-        if not moves:
+        if not moves: # failed
+            failed_seq_str = str(self.prev_moves)
+            assert failed_seq_str not in failed_sequences
+            failed_sequences.add(failed_seq_str)
+
+            if len(self.tableau) <= lowest_remaining:
+                print('Failing with {} cards left in tableau'.format(len(self.tableau)), file=sys.stderr)
+                print('Failed sequences: {}'.format(len(failed_sequences)), file=sys.stderr)
+                print('Failed sequence: {}'.format(failed_seq_str), file=sys.stderr)
+
+                lowest_remaining = len(self.tableau)
             return False
 
         for move in moves:
             new_game = deepcopy(self)
-            new_game.play(move)
-            prev_moves.append(move)
-            solution =  new_game.solve(prev_moves)
+            new_game.play(str(move))
+            solution =  new_game.solve()
             if solution:
                 return solution
-            else:
-                prev_moves = prev_moves[:-1]
+
+        return False
 

@@ -1,8 +1,8 @@
 from collections import OrderedDict
 import random
-from Card import Card
-from Card import Rank
-from Card import Suit
+from card import Card
+from card import Rank
+from card import Suit
 
 class Deck(object):
     """
@@ -27,3 +27,11 @@ class Deck(object):
         """
         random.seed(seed)
         random.shuffle(self.cards)
+
+
+    def __getitem__(self, item):
+        return self.cards[item]
+
+    def __setitem__(self, key, value):
+        answer = self.cards[key] = value
+        return answer
