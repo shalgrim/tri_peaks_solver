@@ -2,7 +2,6 @@ import sys
 from deck import Deck
 from copy import deepcopy
 
-failed_sequences = set()
 lowest_remaining = 28
 
 class Game(object):
@@ -26,23 +25,23 @@ class Game(object):
     def _setup(self, gameno=None):
         if gameno is None:
             self.tableau = [
-                self.deck['4S'], self.deck['10H'], self.deck['3D'],
-                    self.deck['5S'], self.deck['10S'],
-                    self.deck['AH'], self.deck['QC'],
-                    self.deck['JD'], self.deck['4C'],
-                        self.deck['2S'], self.deck['10D'], self.deck['6D'],
-                        self.deck['10C'], self.deck['6C'], self.deck['3H'],
-                        self.deck['AS'], self.deck['QS'], self.deck['JC'],
-                self.deck['KD'], self.deck['QH'], self.deck['5H'],self.deck['AD'], self.deck['9C'],
-                self.deck['KC'], self.deck['4H'], self.deck['7C'], self.deck['2C'], self.deck['JH'],
+                self.deck['3D'], self.deck['QH'], self.deck['4D'],
+                    self.deck['9S'], self.deck['QC'],
+                    self.deck['10D'], self.deck['KC'],
+                    self.deck['8H'], self.deck['10S'],
+                        self.deck['AC'], self.deck['3H'], self.deck['2S'],
+                        self.deck['8D'], self.deck['5C'], self.deck['KS'],
+                        self.deck['2C'], self.deck['6H'], self.deck['2D'],
+                self.deck['4S'], self.deck['6D'], self.deck['5D'],self.deck['JD'], self.deck['AH'],
+                self.deck['6S'], self.deck['QS'], self.deck['JH'], self.deck['3S'], self.deck['2H'],
             ]
             self.stock = [
-                self.deck['5D'], self.deck['6S'], self.deck['8H'], self.deck['3S'], self.deck['6H'], self.deck['8D'],
-                self.deck['QD'], self.deck['JS'], self.deck['KS'], self.deck['9S'], self.deck['5C'], self.deck['8C'],
-                self.deck['AC'], self.deck['3C'], self.deck['KH'], self.deck['7S'], self.deck['2H'], self.deck['7D'],
-                self.deck['7H'], self.deck['8S'], self.deck['4D'], self.deck['9H'], self.deck['2D']
+                self.deck['9D'], self.deck['8S'], self.deck['6C'], self.deck['5H'], self.deck['7H'], self.deck['7S'],
+                self.deck['4H'], self.deck['JS'], self.deck['4C'], self.deck['8C'], self.deck['KH'], self.deck['10C'],
+                self.deck['QD'], self.deck['JC'], self.deck['KD'], self.deck['10H'], self.deck['3C'], self.deck['7D'],
+                self.deck['7C'], self.deck['AS'], self.deck['9H'], self.deck['AD'], self.deck['9C']
             ]
-            self.discard = self.deck['9D']
+            self.discard = self.deck['5S']
 
         self._set_covering()
 
@@ -132,16 +131,12 @@ class Game(object):
         moves = self.get_moves()
 
         if not moves: # failed
-            failed_seq_str = str(self.prev_moves)
-            assert failed_seq_str not in failed_sequences
-            failed_sequences.add(failed_seq_str)
 
             if len(self.tableau) <= lowest_remaining:
                 print('Failing with {} cards left in tableau'.format(len(self.tableau)), file=sys.stderr)
-                print('Failed sequences: {}'.format(len(failed_sequences)), file=sys.stderr)
-                print('Failed sequence: {}'.format(failed_seq_str), file=sys.stderr)
-
+                print('Failed sequence: {}'.format(str(self.prev_moves)), file=sys.stderr)
                 lowest_remaining = len(self.tableau)
+
             return False
 
         for move in moves:
