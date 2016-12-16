@@ -4,6 +4,28 @@ from copy import deepcopy
 
 lowest_remaining = 28
 
+def game_from_file(fn):
+    with open(fn) as f:
+        lines = f.readlines()
+
+    tline = lines[0].strip().split()
+    sline = lines[1].strip().split()
+    dline = lines[2].strip()
+
+    deck = Deck()
+    tableau = [deck[k] for k in tline]
+    stock = [deck[k] for k in sline]
+    discard = deck[dline]
+
+    g = Game()
+    g.setup_from_objects(deck, tableau, stock, discard)
+    # g.deck = deck
+    # g.tableau = tableau
+    # g.stock = stock
+    # g.discard = discard
+    return g
+
+
 class Game(object):
     """
     Has a tableau, stock, and discard
@@ -18,11 +40,13 @@ class Game(object):
         self.tableau = []
         self.stock = []
         self.discard = None
-        self.deck = Deck()
-        self._setup(gameno)
         self.prev_moves = []
+        if gameno:
+            self._setup_from_number(gameno)
 
-    def _setup(self, gameno=None):
+
+    def _setup_from_number(self, gameno=None):
+        self.deck = Deck()
         if gameno is None:
             self.tableau = [
                 self.deck['3D'], self.deck['QH'], self.deck['4D'],
@@ -147,4 +171,12 @@ class Game(object):
                 return solution
 
         return False
+
+    def setup_from_objects(self, deck, tableau, stock, discard):
+        self.deck = deck
+        self.tableau = tableau
+        self.stock = stock
+        self.discard = discard
+        self._set_covering()
+        return
 
