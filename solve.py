@@ -1,6 +1,7 @@
 import configparser
 import game
 import logging
+import os
 from srhpytools_srh.options.parsers import ConfigFileParser
 from srhpytools_srh.util import mylogging
 
@@ -19,7 +20,15 @@ if __name__ == '__main__':
     # get config file options
     cp = configparser.ConfigParser()
     cp.read(opts.configfile)
-    game_fn = cp.get('Main', 'GameFile')
+
+    # Can't believe configparser still does this
+    try:
+        game_fn = cp.get('Main', 'GameFile')
+    except configparser.NoSectionError:
+        if not os.path.isfile(opts.configfile):
+            raise FileNotFoundError('no config file {}'.format(opts.configfile))
+        else:
+            raise
 
     # showtime
     g = game.game_from_file(game_fn)
