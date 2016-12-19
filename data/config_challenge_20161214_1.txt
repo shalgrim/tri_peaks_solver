@@ -1,0 +1,2 @@
+[Main]
+GameFile=data\game_challenge_20161214_1.txt
