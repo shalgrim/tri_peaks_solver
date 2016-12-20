@@ -3,6 +3,8 @@ from deck import Deck
 from copy import deepcopy
 
 lowest_remaining = 28
+unsolvable_games = set()
+
 
 def game_from_file(fn):
     with open(fn) as f:
@@ -33,6 +35,7 @@ class Game(object):
     Game.moves() returns a list of Cards that are all legal moves, with discarding the top of the stock last
     Game.play(card) discards a card, whether from tableau or stock
     """
+
     def __init__(self, gameno=None):
         """
         Creates a game
@@ -44,19 +47,39 @@ class Game(object):
         if gameno:
             self._setup_from_number(gameno)
 
+    def __repr__(self):
+        """
+        Used to represent a given state in a game so that we don't re-search states known to be unsolveable
+        """
+        answer = ''
+        if self.tableau:
+            answer += ','.join(self.tableau)
+
+        answer += '|'
+
+        if self.stock:
+            answer += ','.join(self.stock)
+
+        answer += '|'
+
+        if self.discard:
+            answer += self.discard
+
+        return answer
+
 
     def _setup_from_number(self, gameno=None):
         self.deck = Deck()
         if gameno is None:
             self.tableau = [
                 self.deck['3D'], self.deck['QH'], self.deck['4D'],
-                    self.deck['9S'], self.deck['QC'],
-                    self.deck['10D'], self.deck['KC'],
-                    self.deck['8H'], self.deck['10S'],
-                        self.deck['AC'], self.deck['3H'], self.deck['2S'],
-                        self.deck['8D'], self.deck['5C'], self.deck['KS'],
-                        self.deck['2C'], self.deck['6H'], self.deck['2D'],
-                self.deck['4S'], self.deck['6D'], self.deck['5D'],self.deck['JD'], self.deck['AH'],
+                self.deck['9S'], self.deck['QC'],
+                self.deck['10D'], self.deck['KC'],
+                self.deck['8H'], self.deck['10S'],
+                self.deck['AC'], self.deck['3H'], self.deck['2S'],
+                self.deck['8D'], self.deck['5C'], self.deck['KS'],
+                self.deck['2C'], self.deck['6H'], self.deck['2D'],
+                self.deck['4S'], self.deck['6D'], self.deck['5D'], self.deck['JD'], self.deck['AH'],
                 self.deck['6S'], self.deck['QS'], self.deck['JH'], self.deck['3S'], self.deck['2H'],
             ]
             self.stock = [
@@ -135,7 +158,7 @@ class Game(object):
             self.discard = card
             self.tableau.remove(card)
 
-        else: # must be in stock
+        else:  # must be in stock
             assert card in self.stock, '{} not in stock'.format(card)
             self.discard = card
             self.stock.remove(card)
@@ -144,17 +167,19 @@ class Game(object):
 
         return
 
-
     def solve(self):
-        global lowest_remaining
+        global lowest_remaining, unsolvable_games
 
-        if len(self.tableau) == 0: # solved
+        if len(self.tableau) == 0:  # solved
             print('Successful moves: {}'.format(self.prev_moves))
             return self.prev_moves
 
+        if repr(self) in unsolvable_games:
+            return False
+
         moves = self.get_moves()
 
-        if not moves: # failed
+        if not moves:  # failed
 
             if len(self.tableau) <= lowest_remaining:
                 print('Failing with {} cards left in tableau'.format(len(self.tableau)), file=sys.stderr)
@@ -166,10 +191,11 @@ class Game(object):
         for move in moves:
             new_game = deepcopy(self)
             new_game.play(str(move))
-            solution =  new_game.solve()
+            solution = new_game.solve()
             if solution:
                 return solution
 
+        unsolvable_games.add(repr(self))
         return False
 
     def setup_from_objects(self, deck, tableau, stock, discard):
@@ -179,4 +205,3 @@ class Game(object):
         self.discard = discard
         self._set_covering()
         return
-
