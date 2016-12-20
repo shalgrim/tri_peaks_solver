@@ -53,17 +53,17 @@ class Game(object):
         """
         answer = ''
         if self.tableau:
-            answer += ','.join(self.tableau)
+            answer += ','.join([str(c) for c in self.tableau])
 
         answer += '|'
 
         if self.stock:
-            answer += ','.join(self.stock)
+            answer += ','.join(str(c) for c in self.stock)
 
         answer += '|'
 
         if self.discard:
-            answer += self.discard
+            answer += str(self.discard)
 
         return answer
 
